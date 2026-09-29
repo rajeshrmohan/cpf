@@ -1,0 +1,1142 @@
+<!DOCTYPE html>
+<html lang="en-SG">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CPF Payout Planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0d0e1a; --panel:#161829; --panel-2:#1d2036; --line:#2a2e4a;
+  --text:#eef0ff; --muted:#a3a8c9; --faint:#6d7299;
+  --blue:#5b8cff; --violet:#b38bff; --green:#34e0a1; --pink:#ff5a92; --amber:#ffb547;
+  --g1:#3b4ef0; --g2:#9b2be0; --g3:#ec2d7a;
+  --chip:#22253d;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    --bg:#f3f4fb; --panel:#ffffff; --panel-2:#f1f2fa; --line:#dfe2f0;
+    --text:#15162a; --muted:#50557a; --faint:#8a8fb0;
+    --blue:#2f5fe6; --violet:#7a45d6; --green:#0f9e6c; --pink:#d62466; --amber:#b86e00;
+    --chip:#eceefa;
+  }
+}
+:root[data-theme="light"]{
+  --bg:#f3f4fb; --panel:#ffffff; --panel-2:#f1f2fa; --line:#dfe2f0;
+  --text:#15162a; --muted:#50557a; --faint:#8a8fb0;
+  --blue:#2f5fe6; --violet:#7a45d6; --green:#0f9e6c; --pink:#d62466; --amber:#b86e00;
+  --chip:#eceefa;
+}
+:root[data-theme="dark"]{
+  --bg:#0d0e1a; --panel:#161829; --panel-2:#1d2036; --line:#2a2e4a;
+  --text:#eef0ff; --muted:#a3a8c9; --faint:#6d7299;
+  --blue:#5b8cff; --violet:#b38bff; --green:#34e0a1; --pink:#ff5a92; --amber:#ffb547;
+  --chip:#22253d;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--text);
+  font-family:"Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased}
+.num{font-variant-numeric:tabular-nums}
+.wrap{max-width:1180px;margin:0 auto;padding:20px 16px 48px}
+.grad{background:linear-gradient(110deg,var(--g1) 0%,var(--g2) 55%,var(--g3) 100%);color:#fff}
+
+/* Hero */
+.hero{border-radius:28px;padding:28px 28px 30px;position:relative;overflow:hidden}
+.hero::after{content:"";position:absolute;right:-60px;top:-60px;width:260px;height:260px;border-radius:50%;background:rgba(255,255,255,.08)}
+.dev::before{content:"Developer : Rajesh R Mohan"}
+.dev{user-select:none;-webkit-user-select:none;pointer-events:none;letter-spacing:.02em !important}
+.devfoot{display:block;margin-top:10px;font-weight:700;color:var(--muted);user-select:none;-webkit-user-select:none}
+.devfoot::before{content:"Developer : Rajesh R Mohan"}
+.pill{display:inline-block;background:rgba(255,255,255,.16);border-radius:999px;padding:6px 14px;font-size:.8rem;font-weight:800;letter-spacing:.06em}
+.hero h1{font-size:clamp(2rem,5.5vw,3.4rem);line-height:1.05;margin:16px 0 10px;font-weight:800;letter-spacing:-.02em}
+.hero p{margin:0;max-width:62ch;font-size:1.05rem;opacity:.92}
+.rateline{margin-top:14px;font-size:.85rem;opacity:.85}
+.themebtn{position:absolute;right:18px;top:18px;z-index:2;background:rgba(255,255,255,.16);border:0;color:#fff;border-radius:999px;padding:8px 12px;font:inherit;font-size:.8rem;font-weight:700;cursor:pointer}
+
+/* Layout */
+.grid{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:22px;margin-top:22px;align-items:start}
+@media (max-width:880px){.grid{grid-template-columns:1fr}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:22px}
+.step{margin-bottom:26px}
+.step:last-child{margin-bottom:0}
+.step h2{display:flex;align-items:center;gap:12px;font-size:1.1rem;margin:0 0 14px;font-weight:700}
+.dot{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-size:.85rem;font-weight:800;color:#fff;flex:none}
+.d1{background:var(--g1)}.d2{background:#6a3be8}.d3{background:#8a33e4}.d4{background:#c22dad}.d5{background:var(--g3)}
+
+.money{display:flex;align-items:center;gap:8px;background:var(--panel-2);border:1px solid var(--line);border-radius:16px;padding:12px 16px}
+.money span{color:var(--muted);font-weight:700;font-size:1.1rem}
+.money input{flex:1;min-width:0;background:none;border:0;color:var(--text);font:inherit;font-size:1.9rem;font-weight:800;outline:none}
+.money:focus-within{border-color:var(--blue);box-shadow:0 0 0 3px color-mix(in srgb,var(--blue) 30%,transparent)}
+.chips{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
+.chip{background:var(--chip);border:0;color:var(--text);border-radius:999px;padding:10px 4px;font:inherit;font-weight:700;font-size:.9rem;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--blue);color:#fff}
+.chip:focus-visible,.seg button:focus-visible,.linkbtn:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid var(--violet);outline-offset:2px}
+
+.bigage{display:flex;align-items:baseline;gap:10px}
+.bigage b{font-size:3.4rem;line-height:1;font-weight:800;color:var(--violet)}
+.bigage span{color:var(--muted);font-weight:600}
+input[type=range]{width:100%;margin-top:14px;accent-color:var(--violet);height:28px}
+.scale{display:flex;justify-content:space-between;color:var(--faint);font-size:.78rem}
+
+.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--panel-2);border:1px solid var(--line);border-radius:14px;padding:4px;gap:4px;margin-bottom:14px}
+.seg button{border:0;background:none;color:var(--muted);font:inherit;font-weight:700;padding:10px;border-radius:10px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--panel);color:var(--text);box-shadow:0 1px 0 var(--line)}
+
+.split{margin-top:16px;background:var(--panel-2);border:1px solid var(--line);border-radius:16px;padding:14px}
+.toggle{display:flex;align-items:center;gap:10px;font-weight:700;cursor:pointer}
+.toggle input{width:20px;height:20px;accent-color:var(--blue);margin:0}
+.chips3{grid-template-columns:repeat(3,1fr)}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:.8rem;color:var(--muted);margin-top:6px}
+.legend i{display:inline-block;width:18px;height:3px;border-radius:2px;vertical-align:middle;margin-right:6px}
+.hint{color:var(--muted);font-size:.86rem;margin:8px 0 0}
+.linkbtn{background:none;border:0;color:var(--blue);font:inherit;font-weight:700;font-size:.88rem;padding:0;cursor:pointer;margin-top:10px;text-decoration:underline;text-underline-offset:3px}
+
+details.more{border-top:1px solid var(--line);padding-top:18px;margin-top:6px}
+details.more summary{cursor:pointer;font-weight:700;list-style:none;display:flex;justify-content:space-between;align-items:center}
+details.more summary::-webkit-details-marker{display:none}
+details.more summary::after{content:"+";font-size:1.3rem;color:var(--muted)}
+details.more[open] summary::after{content:"–"}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px}
+@media (max-width:420px){.fields{grid-template-columns:1fr}}
+.field label{display:block;font-size:.85rem;font-weight:700;margin-bottom:6px}
+.field input,.field select{width:100%;background:var(--panel-2);border:1px solid var(--line);color:var(--text);border-radius:12px;padding:10px 12px;font:inherit;font-weight:600}
+.field small{display:block;color:var(--faint);font-size:.76rem;margin-top:5px;line-height:1.35}
+.field.full{grid-column:1/-1}
+
+/* Results */
+.result{border-radius:24px;padding:28px 22px;text-align:center}
+.result .lbl{font-weight:700;font-size:1.05rem;opacity:.95}
+.result .big{font-size:clamp(3rem,10vw,5.2rem);font-weight:800;line-height:1.05;margin:8px 0;letter-spacing:-.02em}
+.result .sub{font-weight:600;opacity:.95}
+.result .warn{margin-top:12px;background:rgba(0,0,0,.22);border-radius:12px;padding:8px 12px;font-size:.9rem;display:inline-block}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}
+@media (max-width:640px){.stats{grid-template-columns:1fr 1fr}}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px}
+.stat .k{color:var(--muted);font-size:.82rem;font-weight:700}
+.stat .v{font-size:1.35rem;font-weight:800;margin-top:4px}
+.c-blue{color:var(--blue)}.c-violet{color:var(--violet)}.c-green{color:var(--green)}.c-pink{color:var(--pink)}
+
+.card{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:20px;margin-top:14px}
+.card h3{margin:0 0 4px;font-size:1.05rem}
+.card .hint{margin-top:2px}
+.chart{width:100%;height:auto;display:block;margin-top:10px}
+.combo{display:flex;flex-wrap:wrap;gap:18px;align-items:center;margin-top:12px}
+.combo .part{flex:1;min-width:120px}
+.combo .part .v{font-size:1.4rem;font-weight:800}
+.combo .plus{font-size:1.4rem;color:var(--faint);font-weight:800}
+
+.cmp{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:12px}
+@media (max-width:520px){.cmp{grid-template-columns:repeat(3,1fr)}}
+.cmp button{background:var(--panel-2);border:1px solid var(--line);color:var(--text);border-radius:14px;padding:10px 6px;font:inherit;cursor:pointer;text-align:center}
+.cmp button[aria-pressed="true"]{border-color:var(--violet);box-shadow:inset 0 0 0 1px var(--violet)}
+.cmp .y{font-size:.8rem;color:var(--muted);font-weight:700}
+.cmp .m{font-weight:800;font-size:1rem}
+
+.tablewrap{overflow-x:auto;margin-top:12px;border:1px solid var(--line);border-radius:14px}
+table{border-collapse:collapse;width:100%;min-width:520px;font-size:.9rem}
+th,td{padding:9px 12px;text-align:right;white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+thead th{background:var(--panel-2);color:var(--muted);font-weight:700;font-size:.8rem;position:sticky;top:0}
+tbody tr+tr td{border-top:1px solid var(--line)}
+details.tbl summary{cursor:pointer;font-weight:700}
+
+.explain{border-left:4px solid var(--amber)}
+.explain h3{color:var(--amber)}
+.explain p,.explain li{color:var(--muted);font-size:.94rem}
+.explain ul{padding-left:18px;margin:8px 0 0}
+.explain li{margin-bottom:6px}
+.sums{min-width:420px}
+
+/* Modal helper */
+dialog{border:1px solid var(--line);background:var(--panel);color:var(--text);border-radius:22px;padding:22px;width:min(520px,calc(100% - 24px));max-height:calc(100% - 40px)}
+dialog::backdrop{background:rgba(5,6,15,.6)}
+dialog h3{margin:0 0 4px}
+.helpout{background:var(--panel-2);border-radius:14px;padding:14px;margin-top:14px;font-size:.92rem}
+.helpout div{display:flex;justify-content:space-between;gap:10px;padding:3px 0}
+.helpout .tot{border-top:1px solid var(--line);margin-top:6px;padding-top:8px;font-weight:800}
+.row{display:flex;gap:10px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap}
+.btn{border:0;border-radius:12px;padding:11px 16px;font:inherit;font-weight:700;cursor:pointer}
+.btn.primary{background:var(--blue);color:#fff}
+.btn.ghost{background:var(--chip);color:var(--text)}
+
+.tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:18px;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:6px;position:sticky;top:env(safe-area-inset-top,0px);z-index:5}
+.tabs button{border:0;background:none;color:var(--muted);font:inherit;font-weight:700;padding:12px 8px;border-radius:13px;cursor:pointer;line-height:1.25}
+.tabs button[aria-selected="true"]{background:linear-gradient(110deg,var(--g1),var(--g2) 60%,var(--g3));color:#fff}
+@media (max-width:520px){.tabs button{font-size:.85rem;padding:10px 4px}}
+.two{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:22px;margin-top:22px;align-items:start}
+@media (max-width:880px){.two{grid-template-columns:1fr}}
+.sumcards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+@media (max-width:640px){.sumcards{grid-template-columns:1fr}}
+.sumcard{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:4px}
+.sumcard .t{font-weight:800}
+.sumcard .amt{color:var(--muted);font-size:.88rem}
+.sumcard .pay{font-size:1.9rem;font-weight:800;line-height:1.1;margin-top:6px}
+.sumcard .per{color:var(--muted);font-size:.85rem}
+.sumcard .up{color:var(--green);font-size:.85rem;font-weight:700;min-height:1.2em}
+.sumcard .btn{margin-top:10px;font-size:.85rem;padding:9px 10px}
+.sumcard.b .pay{color:var(--blue)}.sumcard.f .pay{color:var(--violet)}.sumcard.e .pay{color:var(--pink)}
+tr.hl td{background:color-mix(in srgb,var(--violet) 16%,transparent);font-weight:800}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--text);color:var(--bg);padding:10px 16px;border-radius:12px;font-weight:700;font-size:.9rem;z-index:20}
+.yearrow{display:flex;gap:10px;align-items:center}
+.yearrow .money{flex:0 0 150px}
+.yearrow .money input{font-size:1.6rem}
+.yearrow .chips{flex:1;margin-top:0;grid-template-columns:repeat(3,1fr)}
+@media (max-width:420px){.yearrow{flex-direction:column;align-items:stretch}.yearrow .money{flex:none}}
+.badge{display:inline-block;font-size:.75rem;font-weight:800;padding:3px 9px;border-radius:999px;background:var(--chip);color:var(--muted);margin-left:6px;vertical-align:middle}
+.badge.off{background:color-mix(in srgb,var(--green) 18%,transparent);color:var(--green)}
+.badge.proj{background:color-mix(in srgb,var(--amber) 18%,transparent);color:var(--amber)}
+.formula{margin-top:10px;font-weight:700;background:rgba(0,0,0,.2);display:inline-block;padding:6px 12px;border-radius:10px;font-size:.95rem}
+.inc{display:grid;grid-template-columns:1.4fr 1fr 1fr .7fr .7fr auto;gap:8px;align-items:end;padding:12px 0;border-top:1px solid var(--line)}
+.inc:first-child{border-top:0}
+.inc .field label{font-size:.75rem}
+.inc .field input,.inc .field select{padding:9px 10px}
+.inc .rm{background:var(--chip);border:0;color:var(--muted);border-radius:10px;width:38px;height:40px;font-size:1.1rem;cursor:pointer}
+@media (max-width:640px){.inc{grid-template-columns:1fr 1fr}.inc .field:first-child{grid-column:1/-1}.inc .rm{width:100%}}
+footer{color:var(--faint);font-size:.8rem;margin-top:28px;max-width:80ch}
+footer a{color:var(--muted)}
+@media (prefers-reduced-motion:no-preference){.big{transition:opacity .15s}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero grad">
+    <button class="themebtn" id="themeBtn" type="button" aria-label="Switch light or dark theme">◐ Theme</button>
+    <span class="pill dev" id="devTag" aria-label="Developer: Rajesh R Mohan"></span>
+    <h1>CPF Payout Planner</h1>
+    <p>Turn your CPF Ordinary Account into a steady monthly income — the same amount every month, for as many years as you choose. Calculated the way CPF credits interest.</p>
+    <div class="rateline">OA interest 2.5% p.a. (1 Oct – 31 Dec 2026, legislated floor)</div>
+  </header>
+
+  <nav class="tabs" role="tablist" aria-label="Planner sections">
+    <button role="tab" id="t-oa" aria-controls="tab-oa" aria-selected="true">OA payouts</button>
+    <button role="tab" id="t-life" aria-controls="tab-life" aria-selected="false">CPF LIFE (RA) payouts</button>
+    <button role="tab" id="t-total" aria-controls="tab-total" aria-selected="false">OA + RA monthly total</button>
+    <button role="tab" id="t-inv" aria-controls="tab-inv" aria-selected="false">Investments &amp; dividends</button>
+  </nav>
+
+  <div role="tabpanel" id="tab-oa" aria-labelledby="t-oa">
+  <div class="grid">
+    <!-- Controls -->
+    <section class="panel" aria-label="Your plan">
+      <div class="step">
+        <h2><span class="dot d1">1</span>OA balance when you start drawing</h2>
+        <label class="money" for="bal"><span>S$</span><input id="bal" class="num" inputmode="numeric" autocomplete="off" aria-label="OA balance in Singapore dollars"></label>
+        <div class="chips" id="chips"></div>
+        <button class="linkbtn" id="openHelper" type="button">Not sure? Work out how much OA is left after age 55</button>
+      </div>
+
+      <div class="step">
+        <h2><span class="dot d2">2</span>How much of it to use for payouts</h2>
+        <label class="money" for="useAmt"><span>S$</span><input id="useAmt" class="num" inputmode="numeric" autocomplete="off" aria-label="Amount of OA to use for payouts"></label>
+        <div class="chips" id="pctChips">
+          <button type="button" class="chip" data-p="1">All of it</button>
+          <button type="button" class="chip" data-p="0.75">75%</button>
+          <button type="button" class="chip" data-p="0.5">Half</button>
+          <button type="button" class="chip" data-p="0.25">25%</button>
+        </div>
+        <p class="hint" id="splitHint"></p>
+      </div>
+
+      <div class="step">
+        <h2><span class="dot d3">3</span>Age you start drawing</h2>
+        <div class="bigage"><b class="num" id="ageOut">65</b><span>years old</span></div>
+        <input type="range" id="age" min="55" max="75" step="1" aria-label="Age you start drawing">
+        <div class="scale"><span>55</span><span>65</span><span>75</span></div>
+        <p class="hint" id="ageHint"></p>
+      </div>
+
+      <div class="step">
+        <h2><span class="dot d4">4</span>Plan your payouts by</h2>
+        <div class="seg" role="group" aria-label="Plan mode">
+          <button type="button" id="modeYears" aria-pressed="true">How long</button>
+          <button type="button" id="modeAmt" aria-pressed="false">Monthly amount</button>
+        </div>
+        <div id="yearsBox">
+          <div class="bigage"><b class="num" id="yrsOut">20</b><span id="yrsLbl">years, until age 85</span></div>
+          <input type="range" id="yrs" min="1" max="40" step="1" aria-label="Number of years of payouts">
+          <div class="scale"><span>1 yr</span><span>20</span><span>40 yrs</span></div>
+        </div>
+        <div id="amtBox" hidden>
+          <label class="money" for="amt"><span>S$</span><input id="amt" class="num" inputmode="numeric" autocomplete="off" aria-label="Monthly amount you want"></label>
+          <p class="hint">We'll work out how long your OA lasts at this amount.</p>
+        </div>
+      </div>
+
+      <details class="more" id="more">
+        <summary><span><span class="dot d5" style="display:inline-grid;margin-right:12px;vertical-align:middle">5</span>Fine-tune your plan</span></summary>
+        <div class="fields">
+          <div class="field">
+            <label for="rate">OA interest rate (% p.a.)</label>
+            <input id="rate" type="number" min="2.5" max="6" step="0.05" class="num">
+            <small>2.5% is the legal minimum. Reviewed quarterly.</small>
+          </div>
+          <div class="field">
+            <label for="month">First payout month</label>
+            <select id="month"></select>
+            <small>Interest is credited every 31 Dec.</small>
+          </div>
+          <div class="field">
+            <label for="esc">Raise payout each year by (%)</label>
+            <input id="esc" type="number" min="0" max="5" step="0.5" class="num">
+            <small>0 = level payouts. 2 mirrors CPF LIFE Escalating.</small>
+          </div>
+          <div class="field">
+            <label for="infl">Inflation assumption (% p.a.)</label>
+            <input id="infl" type="number" min="0" max="8" step="0.5" class="num">
+            <small>Shows what later payouts are worth in first-year dollars.</small>
+          </div>
+          <div class="field" style="align-self:end">
+            <button class="btn ghost" id="resetBtn" type="button" style="width:100%">Reset to defaults</button>
+          </div>
+        </div>
+      </details>
+    </section>
+
+    <!-- Results -->
+    <section aria-live="polite" aria-label="Your results">
+      <div class="result grad">
+        <div class="lbl" id="resLbl">You can draw</div>
+        <div class="big num" id="resBig">S$0</div>
+        <div class="sub" id="resSub"></div>
+        <div class="warn" id="resWarn" hidden></div>
+      </div>
+
+      <div class="stats">
+        <div class="stat"><div class="k" id="kYear">Per year</div><div class="v num c-blue" id="sYear"></div></div>
+        <div class="stat"><div class="k">Total you receive</div><div class="v num c-violet" id="sTotal"></div></div>
+        <div class="stat"><div class="k">Interest earned</div><div class="v num c-green" id="sInt"></div></div>
+        <div class="stat"><div class="k">Payouts end at</div><div class="v num c-pink" id="sEnd"></div></div>
+      </div>
+
+      <div class="card" id="asideCard" hidden>
+        <h3>The part you leave in your OA</h3>
+        <p class="hint" id="asideHint"></p>
+        <div class="combo">
+          <div class="part"><div class="hint">Set aside now</div><div class="v num c-blue" id="aNow"></div></div>
+          <div class="plus">+</div>
+          <div class="part"><div class="hint">Interest earned</div><div class="v num c-green" id="aInt"></div></div>
+          <div class="plus">=</div>
+          <div class="part"><div class="hint" id="aAgeLbl">Balance later</div><div class="v num c-violet" id="aEnd"></div></div>
+        </div>
+      </div>
+
+      <div class="card" id="comboCard" hidden>
+        <h3>Your total monthly income</h3>
+        <p class="hint" id="comboHint"></p>
+        <div class="combo">
+          <div class="part"><div class="hint">From OA</div><div class="v num c-blue" id="cOA"></div></div>
+          <div class="plus">+</div>
+          <div class="part"><div class="hint">CPF LIFE</div><div class="v num c-violet" id="cLife"></div></div>
+          <div class="plus">=</div>
+          <div class="part"><div class="hint">Together</div><div class="v num c-green" id="cTot"></div></div>
+        </div>
+        <button class="linkbtn" type="button" data-goto="total">See the full OA + RA breakdown</button>
+      </div>
+
+      <div class="card">
+        <h3>How your OA balance runs down</h3>
+        <p class="hint" id="chartHint">Balance at the end of each year of payouts.</p>
+        <div class="legend" id="legend" hidden><span><i style="background:linear-gradient(90deg,#3b4ef0,#ec2d7a)"></i>Money used for payouts</span><span><i style="background:var(--green)"></i>Money left in OA</span></div>
+        <svg class="chart" id="chart" viewBox="0 0 640 240" role="img" aria-label="Chart of OA balance by age"></svg>
+      </div>
+
+      <div class="card">
+        <h3>Compare payout periods</h3>
+        <p class="hint">Level monthly amount from the same balance and start age. Tap one to use it.</p>
+        <div class="cmp" id="cmp"></div>
+      </div>
+
+      <div class="card">
+        <details class="tbl">
+          <summary>Year-by-year schedule</summary>
+          <div class="tablewrap">
+            <table>
+              <thead id="thead"></thead>
+              <tbody id="tbody"></tbody>
+            </table>
+          </div>
+          <p class="hint" id="tblNote"></p>
+        </details>
+      </div>
+
+      <div class="card explain">
+        <h3>What is an annuity?</h3>
+        <p>An annuity is a series of equal payments that uses up a sum of money over a fixed period. Each month you withdraw a little, and the balance you haven't touched yet keeps earning interest. That interest is why you receive more in total than you started with. This planner builds that annuity from your own OA. Unlike CPF LIFE, it stops when the money runs out, and anything left belongs to your nominees.</p>
+      </div>
+
+      <div class="card explain">
+        <h3>How CPF rules shape these numbers</h3>
+        <ul>
+          <li><strong>Interest is paid on your lowest balance each month</strong> and credited once a year on 31 Dec, then compounded. Your monthly withdrawal happens before the month's lowest balance is taken, so this planner uses the same method. Planners that compound monthly show slightly higher payouts.</li>
+          <li><strong>OA earns 2.5% p.a.</strong> The rate is pegged to local bank rates but cannot fall below 2.5% by law. It has stayed at the floor since 1999.</li>
+          <li><strong>Extra interest does not land in your OA.</strong> From 55, the extra 1–2% on your first S$60,000 (up to S$20,000 from OA) goes into your Retirement Account, so it isn't counted here.</li>
+          <li><strong>At 55 your Retirement Account is formed first.</strong> Your SA closes; SA savings then OA savings move to your RA up to your Full Retirement Sum. SA savings above that go to your OA. What stays in your OA can be withdrawn any time from 55.</li>
+          <li><strong>You can always withdraw at least S$5,000</strong> from 55, even if you haven't set aside your retirement sum.</li>
+          <li><strong>CPF LIFE is separate.</strong> It pays from your RA for life, starting any age from 65 to 70. This planner covers only the OA savings you can freely withdraw.</li>
+        </ul>
+        <div class="tablewrap">
+          <table class="sums">
+            <thead><tr><th>Turning 55 in</th><th>Basic (BRS)</th><th>Full (FRS)</th><th>Enhanced (ERS)</th></tr></thead>
+            <tbody>
+              <tr><td>2025</td><td>S$106,500</td><td>S$213,000</td><td>S$426,000</td></tr>
+              <tr><td>2026</td><td>S$110,200</td><td>S$220,400</td><td>S$440,800</td></tr>
+              <tr><td>2027</td><td>S$114,100</td><td>S$228,200</td><td>S$456,400</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </div>
+  </div>
+
+  <!-- TAB 2: CPF LIFE -->
+  <div role="tabpanel" id="tab-life" aria-labelledby="t-life" hidden>
+    <div class="two">
+      <section class="panel" aria-label="CPF LIFE settings">
+        <div class="step">
+          <h2><span class="dot d1">1</span>Year you turn 55</h2>
+          <div class="yearrow">
+            <label class="money" for="cohortIn"><input id="cohortIn" class="num" inputmode="numeric" maxlength="4" autocomplete="off" aria-label="Year you turn 55" placeholder="YYYY"></label>
+            <div class="chips" id="cohortSeg">
+              <button type="button" class="chip" data-c="2025">2025</button>
+              <button type="button" class="chip" data-c="2026">2026</button>
+              <button type="button" class="chip" data-c="2027">2027</button>
+            </div>
+          </div>
+          <p class="hint" id="cohortHint">Type any year from 2016 to 2050. Your BRS and FRS are fixed by the year you turn 55.</p>
+        </div>
+        <div class="step">
+          <h2><span class="dot d2">2</span>Age you start CPF LIFE</h2>
+          <div class="bigage"><b class="num" id="lAgeOut">65</b><span id="lAgeLbl">years old</span></div>
+          <input type="range" id="lAge" min="65" max="70" step="1" aria-label="CPF LIFE start age">
+          <div class="scale"><span>65</span><span>66</span><span>67</span><span>68</span><span>69</span><span>70</span></div>
+          <p class="hint" id="deferHint"></p>
+        </div>
+        <div class="step">
+          <h2><span class="dot d3">3</span>Or use your own RA balance</h2>
+          <label class="money" for="myRA"><span>S$</span><input id="myRA" class="num" inputmode="numeric" autocomplete="off" aria-label="Your RA balance at 55" placeholder="RA at 55"></label>
+          <p class="hint" id="myRAOut">Enter what's in your RA at 55 to estimate your own payout.</p>
+          <button class="btn primary" type="button" id="useMyRA" hidden>Use in OA + RA total</button>
+        </div>
+      </section>
+
+      <section aria-live="polite" aria-label="CPF LIFE results">
+        <div class="result grad">
+          <div class="lbl" id="lifeResLbl">Turning 55 in 2026, starting at 65</div>
+          <div class="big num" id="lifeBig">S$1,780</div>
+          <div class="sub" id="lifeSub">a month for life with the Full Retirement Sum</div>
+        </div>
+        <div class="sumcards" id="sumCards" style="margin-top:14px"></div>
+
+        <div class="card">
+          <h3>Monthly payout by start age</h3>
+          <p class="hint" id="lifeTblHint"></p>
+          <div class="tablewrap">
+            <table>
+              <thead id="lifeThead"></thead>
+              <tbody id="lifeTbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card explain">
+          <h3>How these CPF LIFE figures work</h3>
+          <ul>
+            <li><strong>2026 figures are CPF Board's estimates</strong> for the Standard Plan from 65: S$950 (BRS), S$1,780 (FRS) and S$3,440 (ERS), assuming 4% interest on RA savings.</li>
+            <li><strong>Retirement sums from 2016 to 2027 are the official figures.</strong> Payouts for years other than 2026 are scaled from the 2026 estimates in line with each year's sums. MOM's own 2027 BRS estimate is close to S$1,000, which matches.</li>
+            <li><strong>Years after 2027 are projections.</strong> Those sums haven't been announced, so they grow 3.5% a year from 2027, the rate used from 2023 to 2027.</li>
+            <li><strong>Before 2025 the ERS was 1.5 times the FRS;</strong> from 2025 it is 2 times.</li>
+            <li><strong>Deferring raises payouts by up to 7% for each year</strong> after 65, up to 35% more if you start at 70. Your RA keeps earning interest meanwhile.</li>
+            <li><strong>Actual payouts vary.</strong> Women receive slightly less because of longer life expectancy, and the Basic and Escalating plans pay differently. Use CPF's CPF LIFE Estimator for your own figure.</li>
+          </ul>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- TAB 3: OA + RA TOTAL -->
+  <div role="tabpanel" id="tab-total" aria-labelledby="t-total" hidden>
+    <div class="two">
+      <section class="panel" aria-label="OA plus RA settings">
+        <div class="step">
+          <h2><span class="dot d1">1</span>OA payouts</h2>
+          <div class="helpout num" id="oaSummary" style="margin-top:0"></div>
+          <button class="linkbtn" type="button" data-goto="oa">Change OA plan</button>
+        </div>
+        <div class="step">
+          <h2><span class="dot d2">2</span>CPF LIFE from your RA</h2>
+          <div class="seg" role="group" aria-label="CPF LIFE source">
+            <button type="button" id="srcLink">From CPF LIFE tab</button>
+            <button type="button" id="srcOwn">Enter my own</button>
+          </div>
+          <div class="helpout num" id="lifeLinked" style="margin-top:0"></div>
+          <div class="fields" id="lifeOwn" style="margin-top:0" hidden>
+            <div class="field">
+              <label for="life">Monthly payout (S$)</label>
+              <input id="life" inputmode="numeric" class="num" placeholder="0">
+              <small>From CPF's CPF LIFE Estimator.</small>
+            </div>
+            <div class="field">
+              <label for="lifeAge">Starts at age</label>
+              <select id="lifeAge"></select>
+              <small>Any age from 65 to 70.</small>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <h2><span class="dot d3">3</span>Is your RA inside that OA balance?</h2>
+          <div class="seg" role="group" aria-label="RA inside OA balance">
+            <button type="button" id="raSep">No, it's separate</button>
+            <button type="button" id="raIn">Yes, take it out</button>
+          </div>
+          <div id="raInBox" hidden>
+            <label class="money" for="raDeduct"><span>S$</span><input id="raDeduct" class="num" inputmode="numeric" autocomplete="off" aria-label="Amount moved from OA into RA"></label>
+          </div>
+          <p class="hint" id="raHint"></p>
+        </div>
+        <div class="step">
+          <h2><span class="dot d4">4</span>Show years up to age</h2>
+          <div class="bigage"><b class="num" id="tEndOut">95</b><span>years old</span></div>
+          <input type="range" id="tEnd" min="75" max="105" step="1" aria-label="Show up to age">
+        </div>
+      </section>
+
+      <section aria-live="polite" aria-label="OA plus RA results">
+        <div class="result grad">
+          <div class="lbl" id="totLbl">Your OA + RA monthly income</div>
+          <div class="big num" id="totBig">S$0</div>
+          <div class="formula num" id="totFormula"></div>
+          <div class="sub" id="totSub" style="margin-top:10px"></div>
+          <div class="warn" id="totWarn" hidden></div>
+        </div>
+        <div class="stats">
+          <div class="stat"><div class="k">OA monthly</div><div class="v num c-blue" id="tOA"></div></div>
+          <div class="stat"><div class="k">RA monthly</div><div class="v num c-violet" id="tLife"></div></div>
+          <div class="stat"><div class="k">OA + RA per year</div><div class="v num c-green" id="tYear"></div></div>
+          <div class="stat"><div class="k" id="tCumLbl">Received by 95</div><div class="v num c-pink" id="tCum"></div></div>
+        </div>
+        <div class="card">
+          <h3>Monthly income by age</h3>
+          <div class="legend"><span><i style="background:var(--blue)"></i>OA payout</span><span><i style="background:var(--violet)"></i>RA (CPF LIFE)</span></div>
+          <svg class="chart" id="totChart" viewBox="0 0 640 260" role="img" aria-label="Stacked chart of monthly OA and RA income by age"></svg>
+          <p class="hint" id="totNote"></p>
+        </div>
+        <div class="card">
+          <details class="tbl" open>
+            <summary>Year-by-year OA + RA</summary>
+            <div class="tablewrap">
+              <table>
+                <thead><tr><th>Age</th><th>OA monthly</th><th>RA monthly</th><th>OA + RA monthly</th><th>OA + RA for the year</th></tr></thead>
+                <tbody id="totTbody"></tbody>
+              </table>
+            </div>
+          </details>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- TAB 4: INVESTMENTS & DIVIDENDS -->
+  <div role="tabpanel" id="tab-inv" aria-labelledby="t-inv" hidden>
+    <div class="two">
+      <section class="panel" aria-label="Other income">
+        <div class="step">
+          <h2><span class="dot d1">1</span>Your other regular income</h2>
+          <p class="hint" style="margin-top:0">Dividends, investment payouts, rent or anything else. Leave an amount blank and nothing is added.</p>
+          <div id="incList"></div>
+          <button class="btn ghost" type="button" id="addInc" style="margin-top:12px;width:100%">+ Add another income</button>
+        </div>
+        <div class="step">
+          <h2><span class="dot d2">2</span>Show years up to age</h2>
+          <div class="bigage"><b class="num" id="gEndOut">95</b><span>years old</span></div>
+          <input type="range" id="gEnd" min="75" max="105" step="1" aria-label="Show up to age">
+        </div>
+      </section>
+
+      <section aria-live="polite" aria-label="Grand total results">
+        <div class="result grad">
+          <div class="lbl" id="gLbl">Your total monthly income</div>
+          <div class="big num" id="gBig">S$0</div>
+          <div class="formula num" id="gFormula"></div>
+          <div class="sub" id="gSub" style="margin-top:10px"></div>
+        </div>
+        <div class="stats">
+          <div class="stat"><div class="k">OA monthly</div><div class="v num c-blue" id="gOA"></div></div>
+          <div class="stat"><div class="k">RA monthly</div><div class="v num c-violet" id="gRA"></div></div>
+          <div class="stat"><div class="k">Investments monthly</div><div class="v num c-green" id="gInv"></div></div>
+          <div class="stat"><div class="k">Total per year</div><div class="v num c-pink" id="gYear"></div></div>
+        </div>
+        <div class="card">
+          <h3>Monthly income by age</h3>
+          <div class="legend"><span><i style="background:var(--blue)"></i>OA payout</span><span><i style="background:var(--violet)"></i>RA (CPF LIFE)</span><span><i style="background:var(--green)"></i>Investments &amp; dividends</span></div>
+          <svg class="chart" id="gChart" viewBox="0 0 640 260" role="img" aria-label="Stacked chart of total monthly income by age"></svg>
+        </div>
+        <div class="card">
+          <details class="tbl" open>
+            <summary>Year-by-year total income</summary>
+            <div class="tablewrap">
+              <table>
+                <thead><tr><th>Age</th><th>OA</th><th>RA</th><th>Investments</th><th>Total monthly</th><th>Total for the year</th></tr></thead>
+                <tbody id="gTbody"></tbody>
+              </table>
+            </div>
+          </details>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <footer>
+    <span class="devfoot" id="devFoot" aria-label="Developer: Rajesh R Mohan"></span>
+    Estimates only, for planning. Figures assume the interest rate you set holds for the whole period, no further top-ups or contributions, and one withdrawal each month. Rates, retirement sums and CPF LIFE estimates follow CPF Board and MOM announcements as at September 2026. Check your own numbers on the CPF website or with CPF Board before making decisions. Not financial advice.
+  </footer>
+</div>
+
+<dialog id="helper" aria-labelledby="helpTitle">
+  <h3 id="helpTitle">OA left for you after age 55</h3>
+  <p class="hint">At 55, CPF moves your SA and then OA savings into your Retirement Account up to your Full Retirement Sum. The rest sits in your OA.</p>
+  <div class="fields">
+    <div class="field"><label for="hOA">OA balance at 55 (S$)</label><input id="hOA" inputmode="numeric" class="num" value="250,000"></div>
+    <div class="field"><label for="hSA">SA balance at 55 (S$)</label><input id="hSA" inputmode="numeric" class="num" value="150,000"></div>
+    <div class="field full"><label for="hYear">Year you turn 55</label>
+      <select id="hYear">
+        <option value="213000">2025 · FRS S$213,000</option>
+        <option value="220400" selected>2026 · FRS S$220,400</option>
+        <option value="228200">2027 · FRS S$228,200</option>
+      </select>
+    </div>
+  </div>
+  <div class="helpout num" id="hOut"></div>
+  <div class="row">
+    <button class="btn ghost" type="button" id="hClose">Close</button>
+    <button class="btn primary" type="button" id="hUse">Use in planner</button>
+  </div>
+</dialog>
+
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+  const DEF = {bal:300000, age:65, mode:"years", yrs:20, amt:1500, rate:2.5, month:0, esc:0, reserve:0, infl:2.5, life:0, lifeAge:65, useAll:true, use:300000, lAge:65, tab:"oa", cohort:2026, myRA:0, tEnd:95, lifeSrc:"link", lifePick:1, raIn:false, raDeduct:0, inc:null};
+  let S = Object.assign({}, DEF);
+  try { const saved = JSON.parse(localStorage.getItem("cpfoa-v3")||"null"); if (saved) S = Object.assign(S, saved); } catch(e){}
+  S.reserve = 0;
+  const save = () => { try { localStorage.setItem("cpfoa-v3", JSON.stringify(S)); } catch(e){} };
+
+  const fmt = n => "S$" + Math.round(n).toLocaleString("en-SG");
+  const fmtK = n => n>=1e6 ? "S$"+(n/1e6).toFixed(n%1e6?2:0)+"M" : n>=1000 ? "S$"+Math.round(n/1000)+"k" : "S$"+Math.round(n);
+  const parse = v => { const n = parseFloat(String(v).replace(/[^0-9.]/g,"")); return isFinite(n) ? n : 0; };
+  const grp = n => Math.round(n).toLocaleString("en-SG");
+
+  /* ---------- CPF-accurate simulation ----------
+     Each month: withdraw first, then interest accrues on that month's lowest
+     balance at rate/12. Accrued interest is credited on 31 Dec and compounds yearly. */
+  function simulate(p, pay0, maxMonths, stopOnShort, noCap){
+    let bal = p.bal, acc = 0, totalW = 0, lastPay = 0, monthsPaid = 0;
+    const r = p.rate/100/12, years = [];
+    let yr = null;
+    for (let k=0; k<maxMonths; k++){
+      const yi = Math.floor(k/12);
+      if (!yr || yr.i !== yi){ yr = {i:yi, age:p.age+yi, open:bal, w:0, cred:0, pay:0, n:0}; years.push(yr); }
+      const pay = pay0 * Math.pow(1+p.esc/100, yi);
+      const avail = Math.max(0, bal - p.reserve);
+      const w = noCap ? pay : Math.min(pay, avail);
+      if (stopOnShort && w <= 0.005){ years.pop(); break; }
+      bal -= w; totalW += w; yr.w += w; yr.n++; yr.pay = pay; lastPay = w; monthsPaid++;
+      acc += bal * r;
+      const cal = (p.month + k) % 12;
+      if (cal === 11){ const c = Math.round(acc*100)/100; bal += c; yr.cred += c; acc = 0; }
+      yr.close = bal;
+      if (stopOnShort && w < pay - 0.005) break;
+    }
+    return {bal, acc, totalW, lastPay, monthsPaid, years};
+  }
+  function solveLevel(p, months){
+    let lo = 0, hi = Math.max(1, p.bal);
+    for (let i=0;i<80;i++){
+      const mid = (lo+hi)/2, s = simulate(p, mid, months, false, true);
+      if (s.bal + s.acc >= p.reserve) lo = mid; else hi = mid;
+    }
+    return Math.floor(lo*100)/100;
+  }
+
+  /* ---------- Build static UI ---------- */
+  const chipVals = [100,200,300,400,500,600,700,800].map(x=>x*1000);
+  $("chips").innerHTML = chipVals.map(v=>`<button type="button" class="chip" data-v="${v}">S$${v/1000}k</button>`).join("");
+  $("month").innerHTML = MONTHS.map((m,i)=>`<option value="${i}">${m}</option>`).join("");
+  $("lifeAge").innerHTML = [65,66,67,68,69,70].map(a=>`<option>${a}</option>`).join("");
+
+  function syncInputs(){
+    $("bal").value = grp(S.bal);
+    $("age").value = S.age; $("yrs").value = S.yrs;
+    $("amt").value = grp(S.amt);
+    $("rate").value = S.rate; $("month").value = S.month; $("esc").value = S.esc;
+    $("useAmt").value = grp(S.useAll ? S.bal : S.use);
+    $("infl").value = S.infl; $("life").value = S.life ? grp(S.life) : "";
+    $("lifeAge").value = S.lifeAge; $("myRA").value = S.myRA ? grp(S.myRA) : "";
+  }
+
+  /* ---------- Render ---------- */
+  function render(){
+    save();
+    ["oa","life","total","inv"].forEach(t=>{ $("t-"+t).setAttribute("aria-selected", String(S.tab===t)); $("tab-"+t).hidden = S.tab!==t; });
+    $("ageOut").textContent = S.age;
+    $("ageHint").textContent = S.age < 65
+      ? "You can withdraw OA savings above your retirement sum any time from 55."
+      : S.age > 70 ? "Your OA keeps earning 2.5% until you start." : "";
+    document.querySelectorAll("#chips .chip").forEach(b=>b.setAttribute("aria-pressed", String(+b.dataset.v===S.bal)));
+    const yearsMode = S.mode==="years";
+    $("modeYears").setAttribute("aria-pressed", String(yearsMode));
+    $("modeAmt").setAttribute("aria-pressed", String(!yearsMode));
+    $("yearsBox").hidden = !yearsMode; $("amtBox").hidden = yearsMode;
+    $("yrsOut").textContent = S.yrs;
+    $("yrsLbl").textContent = (S.yrs===1?"year":"years") + ", until age " + (S.age+S.yrs);
+
+    if (S.useAll === undefined) S.useAll = true;
+    const split = !S.useAll && S.use < S.bal;
+    if (S.useAll && document.activeElement !== $("useAmt")) $("useAmt").value = grp(S.bal);
+    const useBal = split ? S.use : S.bal;
+    const asideBal = S.bal - useBal;
+    document.querySelectorAll("#pctChips .chip").forEach(b=>b.setAttribute("aria-pressed", String(b.dataset.p==="1" ? !split : split && Math.abs(S.use - S.bal*b.dataset.p) < 1)));
+    $("splitHint").textContent = !split ? (!S.useAll && S.use > S.bal ? "That's more than your OA balance of "+fmt(S.bal)+", so the whole balance is used." : "Your whole OA pays you out. Enter a smaller amount to keep the rest in your OA.")
+      : fmt(useBal)+" pays you out. The other "+fmt(asideBal)+" stays in your OA, earns interest and can be withdrawn any time.";
+    const p = {bal:useBal, age:S.age, rate:Math.max(0,S.rate), month:S.month, esc:S.esc, reserve:0};
+    const warn = $("resWarn"); warn.hidden = true;
+
+    if (S.bal <= 0){
+      $("resLbl").textContent = "Enter your OA balance"; $("resBig").textContent = "S$0"; $("resSub").textContent = "";
+      ["sYear","sTotal","sInt","sEnd"].forEach(id=>$(id).textContent="–"); $("chart").innerHTML=""; $("tbody").innerHTML=""; $("cmp").innerHTML=""; $("comboCard").hidden=true;
+      window.__lastSim = {years:[], monthsPaid:0, bal:0, acc:0, totalW:0};
+      return;
+    }
+    if (useBal <= 0){ warn.hidden=false; warn.textContent="Enter an amount to use for payouts."; }
+
+    let sim, first, endAgeTxt, endAgeNum, lastsForever=false;
+    if (yearsMode){
+      const months = S.yrs*12;
+      first = solveLevel(p, months);
+      sim = simulate(p, first, months, false);
+      $("resLbl").textContent = "You can draw";
+      $("resBig").textContent = fmt(first);
+      $("resSub").textContent = (S.esc>0?"a month in year one, rising "+S.esc+"% a year, ":"every month ") + "from age "+S.age+" to "+(S.age+S.yrs)+" ("+S.yrs+" year"+(S.yrs>1?"s":"")+")" + (split&&asideBal>0 ? ", using "+fmt(useBal)+" of your "+fmt(S.bal) : "");
+      endAgeNum = S.age+S.yrs; endAgeTxt = "Age "+endAgeNum;
+    } else {
+      first = S.amt;
+      const maxM = (120 - S.age)*12;
+      sim = simulate(p, first, maxM, true);
+      lastsForever = sim.monthsPaid >= maxM;
+      const y = Math.floor(sim.monthsPaid/12), m = sim.monthsPaid%12;
+      $("resLbl").textContent = "Drawing "+fmt(first)+" a month lasts";
+      if (sim.monthsPaid===0){ $("resBig").textContent="0 months"; $("resSub").textContent="Enter an amount to use for payouts."; endAgeTxt="–"; }
+      else if (lastsForever){ $("resBig").textContent="For life"; $("resSub").textContent="Interest keeps pace with this amount — your OA won't run out."; endAgeTxt="Never"; }
+      else {
+        $("resBig").textContent = y + " yr" + (y!==1?"s":"") + (m? " "+m+" mo":"");
+        const endAge = S.age + sim.monthsPaid/12;
+        endAgeNum = endAge;
+        $("resSub").textContent = "from age "+S.age+", running out around age "+Math.floor(endAge)+(m?" and "+m+" month"+(m>1?"s":""):"")+
+          (sim.lastPay < first - 0.5 ? ". The final payout is a smaller "+fmt(sim.lastPay)+"." : ".");
+        endAgeTxt = "Age "+Math.floor(endAge) + (m ? " ("+m+"m)" : "");
+      }
+    }
+    const pending = sim.acc;
+    const finalBal = sim.bal + pending;
+    const interest = sim.totalW + finalBal - useBal;
+    const yr1 = sim.years[0] ? sim.years[0].w : 0;
+    $("kYear").textContent = S.esc>0 ? "In year one" : "Per year";
+    $("sYear").textContent = fmt(yr1);
+    $("sTotal").textContent = fmt(sim.totalW);
+    $("sInt").textContent = fmt(Math.max(0,interest));
+    $("sEnd").textContent = endAgeTxt;
+
+    if (S.infl>0 && sim.years.length>1){
+      const lastYr = sim.years[sim.years.length-1];
+      const real = lastYr.pay / Math.pow(1+S.infl/100, sim.years.length-1);
+      $("chartHint").textContent = "Balance at the end of each year. At "+S.infl+"% inflation, your last monthly payout of "+fmt(lastYr.pay)+" buys about what "+fmt(real)+" buys in year one.";
+    } else $("chartHint").textContent = "Balance at the end of each year of payouts.";
+
+    // Combined income with CPF LIFE
+    const LN = (typeof lifeNow==="function") ? lifeNow() : {m:S.life, age:S.lifeAge};
+    if (LN.m > 0 && !S.raIn){
+      $("comboCard").hidden = false;
+      const lifeStart = LN.age;
+      const overlapYr = sim.years.find(y=>y.age>=lifeStart);
+      const oaAtLife = overlapYr ? overlapYr.pay : 0;
+      $("comboHint").textContent = overlapYr
+        ? "At age "+lifeStart+", once CPF LIFE starts" + (S.age>lifeStart ? " (OA payouts start at "+S.age+")" : "") + "."
+        : "Your OA payouts end before CPF LIFE starts at "+lifeStart+", so from then CPF LIFE is your only CPF income.";
+      $("cOA").textContent = fmt(oaAtLife); $("cLife").textContent = fmt(LN.m); $("cTot").textContent = fmt(oaAtLife+LN.m);
+    } else $("comboCard").hidden = true;
+
+    // Money left in OA
+    let aside = null;
+    if (split && asideBal > 0){
+      const months = Math.max(12, yearsMode ? S.yrs*12 : sim.monthsPaid);
+      aside = simulate(Object.assign({}, p, {bal:asideBal, esc:0}), 0, months, false);
+      const aEnd = aside.bal + aside.acc, endA = S.age + months/12;
+      $("asideCard").hidden = false;
+      $("aNow").textContent = fmt(asideBal);
+      $("aInt").textContent = fmt(aEnd - asideBal);
+      $("aAgeLbl").textContent = "At age " + (Number.isInteger(endA) ? endA : endA.toFixed(1));
+      $("aEnd").textContent = fmt(aEnd);
+      $("asideHint").textContent = "Untouched at " + S.rate + "% a year while your payouts run" + (lastsForever ? " (shown to age "+Math.round(endA)+")" : "") + ". Your OA total at the end would be about " + fmt(aEnd + finalBal) + ".";
+    } else $("asideCard").hidden = true;
+    $("legend").hidden = !aside;
+
+    window.__lastSim = sim;
+    drawChart(sim, useBal, aside, asideBal);
+    renderTable(sim, pending, aside);
+    renderCompare(p);
+  }
+
+  const renderAll = () => { render(); renderLife(); renderTotal(); renderInv(); };
+
+  /* ---------- Retirement sums & CPF LIFE ----------
+     FRS 2016–2027: official. BRS = FRS/2. ERS = 1.5×FRS before 2025, 2×FRS from 2025.
+     After 2027: projected at 3.5% a year (rounded to S$100).
+     Payouts: CPF Board 2026 Standard Plan estimates from 65 (S$950/1,780/3,440),
+     scaled by each year's sums. Deferral: up to 7% a year after 65 (35% at 70). */
+  const FRS = {2016:161000,2017:166000,2018:171000,2019:176000,2020:181000,2021:186000,2022:192000,2023:198800,2024:205800,2025:213000,2026:220400,2027:228200};
+  const Y_MIN = 2016, Y_MAX = 2050;
+  function getSums(y){
+    let frs = FRS[y], projected = false;
+    if (!frs){ frs = Math.round(FRS[2027]*Math.pow(1.035, y-2027)/200)*200; projected = true; }
+    const brs = frs/2, ers = y>=2025 ? frs*2 : frs*1.5;
+    return {v:[brs,frs,ers], projected};
+  }
+  const SUM26 = getSums(2026).v, BASE26 = [950,1780,3440];
+  const NAMES = [["Basic","BRS","b"],["Full","FRS","f"],["Enhanced","ERS","e"]];
+  const lifePay = (y, i, age) => Math.round(BASE26[i] * getSums(y).v[i] / SUM26[i] * (1 + 0.07*(age-65)) / 10) * 10;
+  function payForRA(ra, y, age){
+    const xs = getSums(y).v, ys = [0,1,2].map(i=>lifePay(y,i,65));
+    let v;
+    if (ra <= xs[0]) v = ys[0]*ra/xs[0];
+    else if (ra <= xs[1]) v = ys[0] + (ys[1]-ys[0])*(ra-xs[0])/(xs[1]-xs[0]);
+    else if (ra <= xs[2]) v = ys[1] + (ys[2]-ys[1])*(ra-xs[1])/(xs[2]-xs[1]);
+    else v = ys[2]*ra/xs[2];
+    return Math.round(v*(1+0.07*(age-65))/10)*10;
+  }
+  function toast(msg){ const t=document.createElement("div"); t.className="toast"; t.textContent=msg; document.body.appendChild(t); setTimeout(()=>t.remove(),2200); }
+  // The CPF LIFE payout currently feeding the totals
+  function lifeNow(){
+    if (S.lifeSrc === "own") return {m:S.life||0, age:S.lifeAge, label:"your own figure"};
+    const y=S.cohort, a=S.lAge;
+    if (S.lifePick === 3) return {m: S.myRA>0 ? payForRA(S.myRA,y,a) : 0, age:a, label:"your RA of "+fmt(S.myRA)+" · turning 55 in "+y, sum:S.myRA};
+    const i=S.lifePick;
+    return {m:lifePay(y,i,a), age:a, label:NAMES[i][1]+" · turning 55 in "+y, sum:getSums(y).v[i]};
+  }
+
+  function renderLife(){
+    const c = S.cohort, a = S.lAge, d = a-65, sums = getSums(c);
+    if (document.activeElement !== $("cohortIn")) $("cohortIn").value = c;
+    document.querySelectorAll("#cohortSeg .chip").forEach(b=>b.setAttribute("aria-pressed", String(+b.dataset.c===c)));
+    $("cohortHint").innerHTML = "BRS "+fmt(sums.v[0])+" · FRS "+fmt(sums.v[1])+" · ERS "+fmt(sums.v[2])+
+      (sums.projected ? ' <span class="badge proj">Projected</span>' : ' <span class="badge off">Official sums</span>');
+    $("lAge").value = a; $("lAgeOut").textContent = a;
+    $("lAgeLbl").textContent = d ? "years old · up to "+Math.round(d*7)+"% more" : "years old";
+    if (d){ const be = 65 + (1+0.07*d)*d/(0.07*d); $("deferHint").textContent = "Starting at "+a+" instead of 65, your total received catches up at about age "+Math.round(be)+". After that you're ahead."; }
+    else $("deferHint").textContent = "You can start any time from 65 to 70. Each year you wait adds up to 7%.";
+    const pays = [0,1,2].map(i=>lifePay(c,i,a));
+    const pick = S.lifePick===3 && !(S.myRA>0) ? 1 : S.lifePick;
+    $("lifeResLbl").textContent = "Turning 55 in "+c+", starting at "+a;
+    if (pick===3){ $("lifeBig").textContent = fmt(payForRA(S.myRA,c,a)); $("lifeSub").textContent = "a month for life with your RA of "+fmt(S.myRA); }
+    else { $("lifeBig").textContent = fmt(pays[pick]); $("lifeSub").textContent = "a month for life with the "+NAMES[pick][0]+" Retirement Sum ("+fmt(sums.v[pick])+")"+(sums.projected?" · projected":""); }
+    $("sumCards").innerHTML = [0,1,2].map(i=>`<div class="sumcard ${NAMES[i][2]}" role="button" tabindex="0" data-i="${i}" style="cursor:pointer;${i===pick?"border-color:var(--violet);box-shadow:inset 0 0 0 1px var(--violet)":""}">
+        <div class="t">${NAMES[i][0]} (${NAMES[i][1]})</div><div class="amt num">${fmt(sums.v[i])} at 55</div>
+        <div class="pay num">${fmt(pays[i])}</div><div class="per num">a month · ${fmt(pays[i]*12)} a year</div>
+        <div class="up num">${d?"+"+fmt(pays[i]-lifePay(c,i,65))+" vs starting at 65":""}</div>
+        <button class="btn ghost" type="button" data-use="${i}">${S.lifeSrc==="link"&&S.lifePick===i?"✓ Used in OA + RA total":"Use in OA + RA total"}</button></div>`).join("");
+    $("lifeThead").innerHTML = "<tr><th>Start age</th><th>Basic "+fmtK(sums.v[0])+"</th><th>Full "+fmtK(sums.v[1])+"</th><th>Enhanced "+fmtK(sums.v[2])+"</th><th>Increase</th></tr>";
+    $("lifeTbody").innerHTML = [65,66,67,68,69,70].map(ag=>`<tr class="${ag===a?"hl":""}"><td>${ag}</td>${[0,1,2].map(i=>`<td>${fmt(lifePay(c,i,ag))}</td>`).join("")}<td>${ag===65?"–":"up to +"+(ag-65)*7+"%"}</td></tr>`).join("");
+    $("lifeTblHint").textContent = "Standard Plan, turning 55 in "+c+(c===2026?" (CPF Board estimates).":sums.projected?" (sums projected, payouts scaled from 2026).":" (payouts scaled from 2026 estimates).");
+    if (S.myRA>0){ const v = payForRA(S.myRA,c,a); $("myRAOut").textContent = "About "+fmt(v)+" a month for life from age "+a+"."; $("useMyRA").hidden=false; $("useMyRA").textContent = S.lifeSrc==="link"&&S.lifePick===3 ? "✓ Used in OA + RA total" : "Use in OA + RA total"; }
+    else { $("myRAOut").textContent = "Enter what's in your RA at 55 to estimate your own payout."; $("useMyRA").hidden=true; }
+  }
+
+  // OA payout simulation for the totals (optionally with RA money taken out of the OA balance)
+  function oaSimFor(balance){
+    if (balance <= 0) return {years:[], monthsPaid:0, bal:0, acc:0, totalW:0};
+    const split = !S.useAll && S.use < S.bal;
+    const useBal = split ? Math.min(S.use, balance) : balance;
+    const p = {bal:useBal, age:S.age, rate:Math.max(0,S.rate), month:S.month, esc:S.esc, reserve:0};
+    if (S.mode==="years"){ const m=S.yrs*12; return simulate(p, solveLevel(p,m), m, false); }
+    return simulate(p, S.amt, (120-S.age)*12, true);
+  }
+  function incomeRows(sim, life, endA, withInv){
+    const startA = Math.min(S.age, life.m>0 ? life.age : S.age, withInv ? invStartAge() : 999);
+    const rows=[];
+    for (let ag=startA; ag<endA; ag++){
+      const y = sim.years.find(r=>r.age===ag);
+      const oaM = y && y.n ? y.w/y.n : 0, oaYear = y ? y.w : 0;
+      const raM = life.m>0 && ag>=life.age ? life.m : 0;
+      const invM = withInv ? invMonthlyAt(ag) : 0;
+      rows.push({ag, oaM, raM, invM, tot:oaM+raM+invM, yr:oaYear+raM*12+invM*12, partial:!!(y&&y.n<12)});
+    }
+    return rows;
+  }
+  function currentTotals(){
+    const life = lifeNow();
+    const deduct = S.raIn ? Math.min(S.raDeduct||0, S.bal) : 0;
+    const sim = deduct>0 ? oaSimFor(S.bal - deduct) : (window.__lastSim || {years:[]});
+    return {life, deduct, sim};
+  }
+
+  function renderTotal(){
+    if (!window.__lastSim) return;
+    const {life, deduct, sim} = currentTotals();
+    const endA = S.tEnd;
+    $("tEnd").value = endA; $("tEndOut").textContent = endA;
+    // sources
+    $("srcLink").setAttribute("aria-pressed", String(S.lifeSrc==="link")); $("srcOwn").setAttribute("aria-pressed", String(S.lifeSrc==="own"));
+    $("lifeLinked").hidden = S.lifeSrc!=="link"; $("lifeOwn").hidden = S.lifeSrc!=="own";
+    $("lifeLinked").innerHTML = `<div><span>Using</span><b>${life.label}</b></div><div><span>From age</span><span>${life.age}</span></div><div class="tot"><span>RA monthly</span><span>${fmt(life.m)}</span></div>`;
+    $("raSep").setAttribute("aria-pressed", String(!S.raIn)); $("raIn").setAttribute("aria-pressed", String(S.raIn));
+    $("raInBox").hidden = !S.raIn;
+    if (S.raIn && document.activeElement !== $("raDeduct")) $("raDeduct").value = grp(S.raDeduct||0);
+    $("raHint").textContent = S.raIn
+      ? "Your RA is paid for from this OA, so "+fmt(deduct)+" is taken out first. OA payouts now come from "+fmt(Math.max(0,S.bal-deduct))+", so nothing is counted twice."
+      : "Choose Yes if the OA balance in the OA tab still includes the money that moved into your RA at 55. Otherwise it would be counted twice.";
+    const f = sim.years[0] ? sim.years[0].w/sim.years[0].n : 0;
+    const oaEnd = sim.years.length ? sim.years[sim.years.length-1].age + sim.years[sim.years.length-1].n/12 : S.age;
+    $("oaSummary").innerHTML = `<div><span>OA balance used</span><b>${fmt(S.bal-deduct)}</b></div><div><span>Monthly from OA</span><b>${fmt(f)}</b></div><div><span>From age</span><span>${S.age}</span></div><div><span>Until about age</span><span>${sim.monthsPaid>=(120-S.age)*12?"life":Math.round(oaEnd*10)/10}</span></div>`;
+
+    const rows = incomeRows(sim, life, endA, false);
+    $("totTbody").innerHTML = rows.map(r=>`<tr><td>${r.ag}</td><td>${fmt(r.oaM)}${r.partial?"*":""}</td><td>${fmt(r.raM)}</td><td><b>${fmt(r.oaM+r.raM)}</b></td><td>${fmt(r.oaM*0+ (r.yr))}</td></tr>`).join("");
+    const both = rows.find(r=>r.oaM>0 && r.raM>0);
+    const pick = both || rows.reduce((m,r)=>r.tot>(m?m.tot:-1)?r:m, null);
+    $("totWarn").hidden = true;
+    if (!pick){ $("totBig").textContent="S$0"; $("totFormula").textContent=""; return; }
+    $("totLbl").textContent = both ? "From age "+both.ag+", OA + RA each month" : "Your OA + RA monthly income";
+    $("totBig").textContent = fmt(pick.oaM + pick.raM);
+    $("totFormula").textContent = fmt(pick.oaM)+" OA  +  "+fmt(pick.raM)+" RA  =  "+fmt(pick.oaM+pick.raM);
+    const cum = rows.reduce((t,r)=>t+r.yr,0);
+    $("totSub").textContent = both
+      ? "while both run"+(oaEnd<endA && life.m>0 ? ". After your OA payouts end at about "+Math.round(oaEnd)+", your RA keeps paying "+fmt(life.m)+" a month for life." : ".")
+      : life.m>0 ? "Your OA payouts and CPF LIFE don't overlap in these years." : "Choose a CPF LIFE payout to add your RA income.";
+    if (!S.raIn && life.sum && S.bal >= life.sum && S.age>=55){ $("totWarn").hidden=false; $("totWarn").textContent="Check step 3: if your RA came out of this "+fmt(S.bal)+" OA balance, choose \u201cYes, take it out\u201d."; }
+    $("tOA").textContent = fmt(pick.oaM); $("tLife").textContent = fmt(pick.raM); $("tYear").textContent = fmt((pick.oaM+pick.raM)*12);
+    $("tCumLbl").textContent = "Received by "+endA; $("tCum").textContent = fmt(cum);
+    $("totNote").textContent = (life.m>0 ? "CPF LIFE pays for life; this view stops at age "+endA+". " : "") + (rows.some(r=>r.partial) ? "* Average for a year with fewer than 12 OA payouts." : "");
+    drawStack("totChart", rows, [["oaM","var(--blue)","OA"],["raM","var(--violet)","RA"]]);
+  }
+
+  /* ---------- Investments & dividends ---------- */
+  const FREQ = {m:[1,"Monthly"], q:[3,"Quarterly"], h:[6,"Half-yearly"], y:[12,"Yearly"]};
+  const TYPES = ["Dividends","Investment payout","Rental income","Part-time work","Annuity / insurance","Other"];
+  if (!Array.isArray(S.inc)) S.inc = [{type:"Dividends",amt:"",freq:"m",from:"",to:""},{type:"Investment payout",amt:"",freq:"m",from:"",to:""}];
+  const incMonthly = it => { const a = parse(it.amt); return a>0 ? a / FREQ[it.freq||"m"][0] : 0; };
+  const invStartAge = () => { const ags = S.inc.filter(it=>incMonthly(it)>0).map(it=>it.from===""||it.from==null?S.age:parse(it.from)); return ags.length?Math.min(...ags):999; };
+  function invMonthlyAt(age){
+    return S.inc.reduce((t,it)=>{ const m=incMonthly(it); if(!m) return t;
+      const from = it.from===""||it.from==null ? -1 : parse(it.from), to = it.to===""||it.to==null ? 999 : parse(it.to);
+      return age>=from && age<to ? t+m : t; },0);
+  }
+  function buildIncList(){
+    $("incList").innerHTML = S.inc.map((it,k)=>`<div class="inc" data-k="${k}">
+      <div class="field"><label>Type</label><select data-f="type">${TYPES.map(t=>`<option${t===it.type?" selected":""}>${t}</option>`).join("")}</select></div>
+      <div class="field"><label>Amount (S$)</label><input data-f="amt" inputmode="decimal" class="num" placeholder="0" value="${it.amt===""?"":grp(parse(it.amt))}"></div>
+      <div class="field"><label>Paid</label><select data-f="freq">${Object.entries(FREQ).map(([k2,v])=>`<option value="${k2}"${k2===(it.freq||"m")?" selected":""}>${v[1]}</option>`).join("")}</select></div>
+      <div class="field"><label>From age</label><input data-f="from" inputmode="numeric" class="num" placeholder="now" value="${it.from??""}"></div>
+      <div class="field"><label>Until age</label><input data-f="to" inputmode="numeric" class="num" placeholder="life" value="${it.to??""}"></div>
+      <button class="rm" type="button" data-rm="${k}" aria-label="Remove this income">×</button></div>`).join("");
+  }
+  function renderInv(){
+    if (!window.__lastSim) return;
+    const {life, sim} = currentTotals();
+    const endA = S.gEnd || 95;
+    $("gEnd").value = endA; $("gEndOut").textContent = endA;
+    const rows = incomeRows(sim, life, endA, true);
+    $("gTbody").innerHTML = rows.map(r=>`<tr><td>${r.ag}</td><td>${fmt(r.oaM)}${r.partial?"*":""}</td><td>${fmt(r.raM)}</td><td>${fmt(r.invM)}</td><td><b>${fmt(r.tot)}</b></td><td>${fmt(r.yr)}</td></tr>`).join("");
+    const pick = rows.find(r=>r.oaM>0 && r.raM>0) || rows.reduce((m,r)=>r.tot>(m?m.tot:-1)?r:m, null);
+    if (!pick){ $("gBig").textContent="S$0"; $("gFormula").textContent=""; return; }
+    $("gLbl").textContent = "At age "+pick.ag+", your total each month";
+    $("gBig").textContent = fmt(pick.tot);
+    $("gFormula").textContent = fmt(pick.oaM)+" OA  +  "+fmt(pick.raM)+" RA  +  "+fmt(pick.invM)+" investments  =  "+fmt(pick.tot);
+    const anyInv = S.inc.some(it=>incMonthly(it)>0);
+    $("gSub").textContent = anyInv ? "Quarterly, half-yearly and yearly amounts are shown as a monthly average." : "No investment income added yet, so the total is your OA + RA only.";
+    $("gOA").textContent = fmt(pick.oaM); $("gRA").textContent = fmt(pick.raM); $("gInv").textContent = fmt(pick.invM); $("gYear").textContent = fmt(pick.tot*12);
+    drawStack("gChart", rows, [["oaM","var(--blue)","OA"],["raM","var(--violet)","RA"],["invM","var(--green)","Investments"]]);
+  }
+
+  function drawStack(id, rows, series){
+    const W=640,H=260,L=58,R=10,T=14,B=34;
+    if(!rows.length){ $(id).innerHTML=""; return; }
+    const tot = r => series.reduce((t,s2)=>t+r[s2[0]],0);
+    const top=Math.max(...rows.map(tot),1), maxV=top*1.08;
+    const n=rows.length, bw=(W-L-R)/n, y=v=>T+(1-v/maxV)*(H-T-B);
+    const grid=[0,.5,1].map(f=>{const v=top*f;return `<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" stroke-dasharray="3 4"/><text x="${L-8}" y="${y(v)+4}" text-anchor="end" font-size="12" fill="var(--faint)">${fmtK(v)}</text>`}).join("");
+    const step = n<=12?1:n<=30?5:10;
+    const bars=rows.map((r,i)=>{const x=L+i*bw+bw*.12, w=bw*.76; let base=0, out="";
+      series.forEach(([k,col])=>{ const v=r[k]; if(v>0){ const y1=y(base+v), y0=y(base); out+=`<rect x="${x}" y="${y1}" width="${w}" height="${y0-y1}" fill="${col}"/>`; base+=v; } });
+      const tip = series.map(([k,,lab])=>lab+" "+fmt(r[k])).join(" + ")+" = "+fmt(tot(r));
+      return `<g><title>Age ${r.ag}: ${tip}</title>${out}${(r.ag-rows[0].ag)%step===0?`<text x="${x+w/2}" y="${H-12}" text-anchor="middle" font-size="12" fill="var(--faint)">${r.ag}</text>`:""}</g>`;}).join("");
+    $(id).innerHTML = grid+bars;
+  }
+
+  function drawChart(sim, start, aside, asideStart){
+    const W=640,H=240,L=58,R=14,T=14,B=34;
+    const pts=[{age:S.age,v:start}].concat(sim.years.map(y=>({age:y.age+1,v:y.close})));
+    const pts2 = aside ? [{age:S.age,v:asideStart}].concat(aside.years.map(y=>({age:y.age+1,v:y.close}))) : [];
+    const maxV=Math.max(...pts.map(p=>p.v),...pts2.map(p=>p.v),1);
+    const minA=pts[0].age, maxA=Math.max(pts[pts.length-1].age, pts2.length?pts2[pts2.length-1].age:0)||minA+1, span=Math.max(1,maxA-minA);
+    const x=a=>L+(a-minA)/span*(W-L-R), y=v=>T+(1-v/maxV)*(H-T-B);
+    const line=pts.map((p,i)=>(i?"L":"M")+x(p.age).toFixed(1)+" "+y(p.v).toFixed(1)).join(" ");
+    const area=line+` L${x(maxA).toFixed(1)} ${H-B} L${x(minA).toFixed(1)} ${H-B} Z`;
+    const line2 = pts2.map((p,i)=>(i?"L":"M")+x(p.age).toFixed(1)+" "+y(p.v).toFixed(1)).join(" ");
+    const step = span<=10?1:span<=20?5:span<=40?5:10;
+    let ticks="";
+    for(let a=minA;a<=maxA;a++){ if((a-minA)%step===0||a===maxA){ ticks+=`<text x="${x(a)}" y="${H-12}" text-anchor="middle" font-size="12" fill="var(--faint)">${a}</text>`; } }
+    const grid=[0,.5,1].map(f=>{const v=maxV*f;return `<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" stroke-dasharray="3 4"/><text x="${L-8}" y="${y(v)+4}" text-anchor="end" font-size="12" fill="var(--faint)">${fmtK(v)}</text>`}).join("");
+    const LM=lifeNow(); const lifeMark = LM.m>0 && LM.age>=minA && LM.age<=maxA ? `<line x1="${x(LM.age)}" x2="${x(LM.age)}" y1="${T}" y2="${H-B}" stroke="var(--violet)" stroke-width="1.5"/><text x="${x(LM.age)+5}" y="${T+12}" font-size="11" fill="var(--violet)">CPF LIFE</text>`:"";
+    $("chart").innerHTML=`<defs><linearGradient id="ag" x1="0" x2="1"><stop offset="0" stop-color="#3b4ef0"/><stop offset=".55" stop-color="#9b2be0"/><stop offset="1" stop-color="#ec2d7a"/></linearGradient>
+      <linearGradient id="af" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9b2be0" stop-opacity=".35"/><stop offset="1" stop-color="#9b2be0" stop-opacity="0"/></linearGradient></defs>
+      ${grid}<path d="${area}" fill="url(#af)"/><path d="${line}" fill="none" stroke="url(#ag)" stroke-width="3" stroke-linejoin="round"/>${line2?`<path d="${line2}" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-dasharray="6 5"/>`:""}${lifeMark}${ticks}`;
+  }
+
+  function renderTable(sim, pending, aside){
+    const split = !!aside;
+    $("thead").innerHTML = "<tr><th>Age</th><th>OA start balance</th><th>Monthly</th><th>Withdrawn</th><th>Interest credited</th><th>OA end balance</th>"+(split?"<th>Of which set aside</th>":"")+"</tr>";
+    $("tbody").innerHTML = sim.years.map((y,i)=>{
+      const a = split ? aside.years[i] : null;
+      const open = y.open + (a?a.open:0), cred = y.cred + (a?a.cred:0), close = y.close + (a?a.close:0);
+      return `<tr><td>${y.age}</td><td>${fmt(open)}</td><td>${fmt(y.pay)}</td><td>${fmt(y.w)}</td><td>${fmt(cred)}</td><td>${fmt(close)}</td>${split?`<td>${fmt(a?a.close:0)}</td>`:""}</tr>`;
+    }).join("");
+    const bits=[];
+    bits.push("Balances and interest are for your whole OA"+(split?", including the part you set aside":"")+". Each row is 12 months of payouts starting in "+MONTHS[S.month]+". Interest appears in the row containing 31 Dec.");
+    const pendingAll = pending + (split ? aside.acc : 0);
+    if (pendingAll>0.5) bits.push("After the last row, about "+fmt(pendingAll)+" more interest earned that year is credited on 31 Dec.");
+    $("tblNote").textContent = bits.join(" ");
+  }
+
+  function renderCompare(p){
+    const opts=[10,15,20,25,30];
+    $("cmp").innerHTML = opts.map(n=>{
+      const pp=Object.assign({},p,{esc:0});
+      const m=solveLevel(pp,n*12);
+      const on = S.mode==="years" && S.yrs===n && S.esc===0;
+      return `<button type="button" data-y="${n}" aria-pressed="${on}"><div class="y">${n} yrs · to ${S.age+n}</div><div class="m num">${fmt(m)}</div></button>`;
+    }).join("");
+  }
+
+  /* ---------- Events ---------- */
+  const moneyInput = (id,key,min=0)=>{
+    const el=$(id);
+    el.addEventListener("input",()=>{ const caret=el.value.length-el.selectionStart; const v=parse(el.value); S[key]=Math.max(min,v); el.value = el.value.trim()===""?"":grp(v); try{el.setSelectionRange(el.value.length-caret,el.value.length-caret);}catch(e){} renderAll(); });
+  };
+  moneyInput("bal","bal"); moneyInput("amt","amt"); moneyInput("life","life");
+  $("life").addEventListener("input",()=>{ if(S.lifeSrc!=="own"){ S.lifeSrc="own"; renderAll(); } });
+  $("chips").addEventListener("click",e=>{const b=e.target.closest(".chip"); if(!b)return; S.bal=+b.dataset.v; $("bal").value=grp(S.bal); renderAll();});
+  $("pctChips").addEventListener("click",e=>{const b=e.target.closest(".chip"); if(!b)return; if(b.dataset.p==="1"){S.useAll=true;} else {S.useAll=false; S.use=Math.round(S.bal*b.dataset.p);} $("useAmt").value=grp(S.useAll?S.bal:S.use); renderAll();});
+  $("useAmt").addEventListener("input",e=>{const el=e.target, caret=el.value.length-el.selectionStart, v=parse(el.value); S.use=v; S.useAll = v<=0 || v>=S.bal; if(v<=0){S.useAll=false;} el.value = el.value.trim()===""?"":grp(v); try{el.setSelectionRange(el.value.length-caret,el.value.length-caret);}catch(err){} renderAll();});
+  $("age").addEventListener("input",e=>{S.age=+e.target.value; renderAll();});
+  $("yrs").addEventListener("input",e=>{S.yrs=+e.target.value; renderAll();});
+  $("modeYears").addEventListener("click",()=>{S.mode="years"; renderAll();});
+  $("modeAmt").addEventListener("click",()=>{S.mode="amount"; renderAll();});
+  $("rate").addEventListener("change",e=>{let v=parseFloat(e.target.value); if(!isFinite(v)||v<2.5)v=2.5; if(v>6)v=6; S.rate=v; e.target.value=v; renderAll();});
+  $("esc").addEventListener("change",e=>{let v=parseFloat(e.target.value); if(!isFinite(v)||v<0)v=0; if(v>5)v=5; S.esc=v; e.target.value=v; renderAll();});
+  $("infl").addEventListener("change",e=>{let v=parseFloat(e.target.value); if(!isFinite(v)||v<0)v=0; if(v>8)v=8; S.infl=v; e.target.value=v; renderAll();});
+  $("month").addEventListener("change",e=>{S.month=+e.target.value; renderAll();});
+  $("lifeAge").addEventListener("change",e=>{S.lifeAge=+e.target.value; S.lifeSrc="own"; renderAll();});
+  $("cmp").addEventListener("click",e=>{const b=e.target.closest("button"); if(!b)return; S.mode="years"; S.yrs=+b.dataset.y; S.esc=0; syncInputs(); renderAll();});
+  $("resetBtn").addEventListener("click",()=>{S=Object.assign({},DEF); syncInputs(); renderAll();});
+
+  // Helper dialog
+  const dlg=$("helper");
+  function helperCalc(){
+    const oa=parse($("hOA").value), sa=parse($("hSA").value), frs=+$("hYear").value;
+    const ra=Math.min(oa+sa,frs), fromSA=Math.min(sa,ra), fromOA=ra-fromSA, left=oa+sa-ra;
+    const grown = left*Math.pow(1+S.rate/100, Math.max(0,S.age-55));
+    $("hOut").innerHTML=`<div><span>Moved to Retirement Account</span><b>${fmt(ra)}</b></div>
+      <div><span>… from SA</span><span>${fmt(fromSA)}</span></div>
+      <div><span>… from OA</span><span>${fmt(fromOA)}</span></div>
+      ${sa>fromSA?`<div><span>SA above FRS moved to OA</span><span>${fmt(sa-fromSA)}</span></div>`:""}
+      <div class="tot"><span>OA you can draw from at 55</span><span>${fmt(left)}</span></div>
+      ${S.age>55?`<div><span>Grown at ${S.rate}% to age ${S.age}</span><b>${fmt(grown)}</b></div>`:""}
+      ${left<5000?`<div><span>You can still withdraw at least</span><span>S$5,000</span></div>`:""}`;
+    return grown;
+  }
+  ["hOA","hSA"].forEach(id=>$(id).addEventListener("input",e=>{const v=parse(e.target.value); e.target.value=e.target.value.trim()===""?"":grp(v); helperCalc();}));
+  $("hYear").addEventListener("change",helperCalc);
+  $("openHelper").addEventListener("click",()=>{helperCalc(); if(dlg.showModal) dlg.showModal(); else dlg.setAttribute("open","");});
+  $("hClose").addEventListener("click",()=>dlg.close());
+  $("hUse").addEventListener("click",()=>{S.bal=Math.round(helperCalc()); $("bal").value=grp(S.bal); dlg.close(); renderAll();});
+
+  // Theme toggle
+  const root=document.documentElement;
+  try{ const t=localStorage.getItem("cpfoa-theme"); if(t) root.dataset.theme=t; }catch(e){}
+  $("themeBtn").addEventListener("click",()=>{
+    const cur = root.dataset.theme || (matchMedia("(prefers-color-scheme: light)").matches?"light":"dark");
+    root.dataset.theme = cur==="light"?"dark":"light";
+    try{ localStorage.setItem("cpfoa-theme",root.dataset.theme); }catch(e){}
+  });
+
+  // Tabs & CPF LIFE events
+  const goTab = t => { S.tab=t; renderAll(); window.scrollTo({top: document.querySelector(".tabs").offsetTop - 8, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"}); };
+  ["oa","life","total","inv"].forEach(t=>$("t-"+t).addEventListener("click",()=>goTab(t)));
+  document.addEventListener("click",e=>{const g=e.target.closest("[data-goto]"); if(g) goTab(g.dataset.goto);});
+  const setCohort = y => { S.cohort = Math.min(Y_MAX, Math.max(Y_MIN, y)); renderAll(); };
+  $("cohortSeg").addEventListener("click",e=>{const b=e.target.closest("[data-c]"); if(!b)return; $("cohortIn").value=b.dataset.c; setCohort(+b.dataset.c);});
+  $("cohortIn").addEventListener("input",e=>{ const v=e.target.value.replace(/\D/g,"").slice(0,4); e.target.value=v;
+    if (v.length===4){ const y=+v; if (y<Y_MIN||y>Y_MAX){ $("cohortHint").textContent="Enter a year from "+Y_MIN+" to "+Y_MAX+"."; return; } setCohort(y); } });
+  $("cohortIn").addEventListener("blur",e=>{ e.target.value=S.cohort; });
+  $("lAge").addEventListener("input",e=>{S.lAge=+e.target.value; renderAll();});
+  const linkLife = (i,msg) => { S.lifeSrc="link"; S.lifePick=i; if(S.raIn && i<3) S.raDeduct=getSums(S.cohort).v[i]; toast(msg); renderAll(); };
+  $("sumCards").addEventListener("click",e=>{
+    const u=e.target.closest("[data-use]");
+    if(u){ const i=+u.dataset.use; linkLife(i, NAMES[i][1]+" ("+fmt(lifePay(S.cohort,i,S.lAge))+") used in OA + RA total"); return; }
+    const c=e.target.closest(".sumcard"); if(c){ S.lifePick=+c.dataset.i; renderAll(); }
+  });
+  $("sumCards").addEventListener("keydown",e=>{const c=e.target.closest(".sumcard"); if(c&&(e.key==="Enter"||e.key===" ")&&!e.target.closest("button")){e.preventDefault(); S.lifePick=+c.dataset.i; renderAll();}});
+  $("myRA").addEventListener("input",e=>{const v=parse(e.target.value); S.myRA=v; e.target.value=e.target.value.trim()===""?"":grp(v); renderAll();});
+  $("useMyRA").addEventListener("click",()=>{ S.lifeSrc="link"; S.lifePick=3; if(S.raIn) S.raDeduct=S.myRA; toast("Your RA payout used in OA + RA total"); renderAll(); });
+  $("tEnd").addEventListener("input",e=>{S.tEnd=+e.target.value; renderAll();});
+  $("gEnd").addEventListener("input",e=>{S.gEnd=+e.target.value; renderAll();});
+  $("srcLink").addEventListener("click",()=>{S.lifeSrc="link"; renderAll();});
+  $("srcOwn").addEventListener("click",()=>{S.lifeSrc="own"; renderAll();});
+  $("raSep").addEventListener("click",()=>{S.raIn=false; renderAll();});
+  $("raIn").addEventListener("click",()=>{ S.raIn=true; if(!(S.raDeduct>0)){ const l=lifeNow(); S.raDeduct = l.sum || getSums(S.cohort).v[1]; } renderAll(); });
+  $("raDeduct").addEventListener("input",e=>{const v=parse(e.target.value); S.raDeduct=v; e.target.value=e.target.value.trim()===""?"":grp(v); renderAll();});
+  // investments list
+  $("incList").addEventListener("input",e=>{ const row=e.target.closest(".inc"), f=e.target.dataset.f; if(!row||!f) return;
+    const it=S.inc[+row.dataset.k];
+    if (f==="amt"){ const raw=e.target.value; it.amt = raw.trim()===""?"":parse(raw); if(raw.trim()!=="" && !/\.$/.test(raw)) e.target.value=grp(parse(raw)); }
+    else if (f==="from"||f==="to"){ const v=e.target.value.replace(/\D/g,"").slice(0,3); e.target.value=v; it[f]=v; }
+    else it[f]=e.target.value;
+    renderAll(); });
+  $("incList").addEventListener("change",e=>{ const row=e.target.closest(".inc"), f=e.target.dataset.f; if(!row||!f) return; if(e.target.tagName==="SELECT"){ S.inc[+row.dataset.k][f]=e.target.value; renderAll(); } });
+  $("incList").addEventListener("click",e=>{ const b=e.target.closest("[data-rm]"); if(!b) return; S.inc.splice(+b.dataset.rm,1); if(!S.inc.length) S.inc.push({type:"Dividends",amt:"",freq:"m",from:"",to:""}); buildIncList(); renderAll(); });
+  $("addInc").addEventListener("click",()=>{ S.inc.push({type:"Other",amt:"",freq:"m",from:"",to:""}); buildIncList(); renderAll(); const last=$("incList").lastElementChild; last && last.querySelector('[data-f="amt"]').focus(); });
+  buildIncList();
+
+  // Developer credit guard: restores the credit if it is removed or altered on the page
+  (function(){
+    const CSS = '.dev::before,.devfoot::before{content:"Developer : Rajesh R Mohan" !important;display:inline !important;visibility:visible !important}.dev,.devfoot{display:inline-block !important;visibility:visible !important;opacity:1 !important}';
+    function ensure(){
+      if(!document.getElementById("devStyle")){ const st=document.createElement("style"); st.id="devStyle"; st.textContent=CSS; document.head.appendChild(st); }
+      else if(document.getElementById("devStyle").textContent!==CSS) document.getElementById("devStyle").textContent=CSS;
+      const hero=document.querySelector(".hero"), foot=document.querySelector("footer");
+      let t=document.getElementById("devTag");
+      if(!t && hero){ t=document.createElement("span"); t.id="devTag"; hero.insertBefore(t, hero.querySelector("h1")); }
+      if(t){ t.className="pill dev"; t.textContent=""; t.setAttribute("aria-label","Developer: Rajesh R Mohan"); t.removeAttribute("style"); t.removeAttribute("hidden"); }
+      let f=document.getElementById("devFoot");
+      if(!f && foot){ f=document.createElement("span"); f.id="devFoot"; foot.prepend(f); }
+      if(f){ f.className="devfoot"; f.textContent=""; f.setAttribute("aria-label","Developer: Rajesh R Mohan"); f.removeAttribute("style"); f.removeAttribute("hidden"); }
+    }
+    ensure();
+    const obs = new MutationObserver(()=>{ obs.disconnect(); ensure(); observe(); });
+    const observe = () => obs.observe(document.documentElement,{subtree:true,childList:true,attributes:true,characterData:true,attributeFilter:["class","style","hidden","id"]});
+    observe();
+  })();
+
+  syncInputs(); renderAll();
+})();
+</script>
+</body>
+</html>
